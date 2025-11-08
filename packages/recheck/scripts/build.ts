@@ -5,28 +5,15 @@ import type {
   Plugin,
   PluginBuild,
   OnLoadArgs,
-  OnResolveArgs,
 } from "esbuild";
 
 const isProduction = process.env["NODE_ENV"] === "production";
-
-// See https://github.com/evanw/esbuild/issues/619#issuecomment-751995294.
-const makeAllPackagesExternalPlugin: Plugin = {
-  name: "make-all-packages-external",
-  setup(build: PluginBuild) {
-    const filter = /^[^./]|^\.[^./]|^\.\.[^/]/; // Must not start with "/" or "./" or "../"
-    build.onResolve({ filter }, (args: OnResolveArgs) => ({
-      path: args.path,
-      external: true,
-    }));
-  },
-};
 
 const inlineWorkerPlugin: Plugin = {
   name: "inline-worker",
   setup(build: PluginBuild) {
     const { plugins, ...initialOptions } = build.initialOptions;
-    const filter = /[./]worker\.(?:js|ts)$/;
+    const filter = /[.\\/]worker\.(?:js|ts)$/;
     build.onLoad({ filter }, async (args: OnLoadArgs) => {
       const result = await esbuild({
         ...initialOptions,
@@ -35,6 +22,7 @@ const inlineWorkerPlugin: Plugin = {
         format: "iife",
         target: "es2020",
         write: false,
+        logLevel: 'error',
         plugins: plugins?.filter((plugin) => plugin !== inlineWorkerPlugin),
         sourcemap: isProduction ? false : "inline",
       });
@@ -60,41 +48,66 @@ const inlineWorkerPlugin: Plugin = {
   },
 };
 
+type SimpleBuildOptions = Pick<BuildOptions, 'entryPoints' | 'inject' | 'format' | 'platform' | 'outfile' | 'plugins'>;
+
+async function build(options: SimpleBuildOptions) {
+  const buildOptions: BuildOptions = {
+    bundle: true,
+    minify: isProduction,
+    target: "es2020",
+    logLevel: "error",
+    packages: 'external',
+    ...options,
+  };
+  if (buildOptions.format === 'esm') {
+    if (buildOptions.outfile) {
+      buildOptions.outfile = buildOptions.outfile.replace(/\.js$/, '.mjs');
+    }
+    // by default esbuild will try `main` package imports before `module`, causing to often bundle dependencies as CJS
+    // setting `mainFields` will look for a `module` format (ESM) before `main` (usually CJS)
+    // see: https://esbuild.github.io/api/#main-fields
+    buildOptions.mainFields = ['module', 'main'];
+    if (buildOptions.platform === 'browser') {
+      // if `platform` is browser, have esbuild check for a `browser` format over `module` and `main`
+      buildOptions.mainFields.unshift('browser');
+    }
+  }
+  return await esbuild(buildOptions);
+}
+
 const main = async () => {
-  await esbuild({
-    entryPoints: ["src/main.ts"],
-    inject: ["src/inject/main.ts"],
-    bundle: true,
-    minify: isProduction,
-    format: "cjs",
-    target: "es2020",
-    logLevel: "error",
-    platform: "node",
-    plugins: [makeAllPackagesExternalPlugin, inlineWorkerPlugin],
-    outfile: "lib/main.js",
-  });
-  await esbuild({
-    entryPoints: ["src/browser.ts"],
-    bundle: true,
-    minify: isProduction,
-    format: "cjs",
-    target: "es2020",
-    logLevel: "error",
-    platform: "browser",
-    plugins: [makeAllPackagesExternalPlugin, inlineWorkerPlugin],
-    outfile: "lib/browser.js",
-  });
-  await esbuild({
-    entryPoints: ["src/synckit-worker.ts"],
-    bundle: false,
-    minify: isProduction,
-    format: "cjs",
-    target: "es2020",
-    logLevel: "error",
-    platform: "node",
-    plugins: [makeAllPackagesExternalPlugin],
-    outfile: "lib/synckit-worker.js",
-  });
+  const formats: BuildOptions['format'][] = ['cjs', 'esm'];
+
+  for (const format of formats) {
+    await build({
+      entryPoints: ["src/main.ts"],
+      inject: ["src/inject/main.ts"],
+      format,
+      platform: "node",
+      plugins: [inlineWorkerPlugin],
+      outfile: "lib/main.js",
+    });
+  }
+
+  for (const format of formats) {
+    await build({
+      entryPoints: ["src/browser.ts"],
+      format,
+      platform: "browser",
+      plugins: [inlineWorkerPlugin],
+      outfile: "lib/browser.js",
+    });
+  }
+
+  for (const format of formats) {
+    await build({
+      entryPoints: ["src/synckit-worker.ts"],
+      format,
+      platform: "node",
+      plugins: [inlineWorkerPlugin],
+      outfile: "lib/synckit-worker.js",
+    });
+  }
 };
 
 main().catch((err) => {

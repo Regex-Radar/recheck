@@ -14,6 +14,18 @@
   },
   "main": "index.js",
   "browser": "lib/browser.js",
+  "exports": {
+    "node": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "default": "./index.js"
+    },
+    "browser": {
+      "types": "./index.d.ts",
+      "import": "./lib/browser.mjs",
+      "default": "./lib/browser.js"
+    }
+  },
   "files": [
     "index.d.ts",
     "lib"

@@ -398,7 +398,11 @@ lazy val js = project
       .cross(CrossVersion.for3Use2_13),
     testFrameworks += new TestFramework("munit.Framework"),
     // ScalaJS config:
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.ESModule)
+        // use smallest modules
+        .withModuleSplitStyle(org.scalajs.linker.interface.ModuleSplitStyle.SmallestModules)
+    },
     Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .dependsOn(coreJS, codecJS)
