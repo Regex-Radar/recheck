@@ -6,6 +6,8 @@ on:
     tags: [v*]
   pull_request: {}
   workflow_dispatch: {}
+  schedule:
+    - cron: '0 0 * * 5'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -91,18 +93,22 @@ jobs:
     name: Node Lint
     steps:
       - uses: actions/checkout@v5
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-          cache: 'yarn'
+          cache: 'pnpm'
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Lint
         run: |
-          yarn lerna run lint
+          pnpm -r run lint
       - name: Type Check
         run: |
-          yarn lerna run typecheck
+          pnpm -r run typecheck
 
   scala-test:
     runs-on: ubuntu-24.04
@@ -114,10 +120,10 @@ jobs:
         with:
           jvm: adoptium:1.21.0.2
           apps: sbt
+      # This Node.js is needed for Scala tests, so we don't need to install dependencies.
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-          cache: 'yarn'
       - name: Cache SBT
         uses: actions/cache@v4
         with:
@@ -142,12 +148,16 @@ jobs:
     name: Node v${{ matrix.node }} Test
     steps:
       - uses: actions/checkout@v5
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v6
         with:
           name: recheck.js
@@ -157,36 +167,38 @@ jobs:
           name: recheck.jar
           path: modules/recheck-cli/target/scala-2.13/
       - name: Build
-        run: yarn lerna run build
+        run: pnpm -r run build
       - name: Test
-        # It needs two `--` actually: one is for Yarn and the latter is for Lerna.
-        run: yarn lerna run test -- -- --coverage
+        run: pnpm exec lerna run test -- --coverage --forceExit --detectOpenHandles
       - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   native-build:
     needs: [build]
-    if: github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/')
+    if: github.event.schedule == '0 0 * * 5' || startsWith(github.ref, 'refs/tags/')
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14, ubuntu-22.04, windows-2022]
+        os: [macos-15-intel, macos-15, ubuntu-24.04, ubuntu-24.04-arm, windows-2025]
         include:
-          - os: macos-13
+          - os: macos-15-intel
             artifact_filename: recheck-darwin-x64
             local_path: modules/recheck-cli/target/native-image/recheck
-          - os: macos-14
+          - os: macos-15
             artifact_filename: recheck-darwin-arm64
             local_path: modules/recheck-cli/target/native-image/recheck
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             artifact_filename: recheck-linux-x64
             local_path: modules/recheck-cli/target/native-image/recheck
-          - os: windows-2022
+          - os: ubuntu-24.04-arm
+            artifact_filename: recheck-linux-arm64
+            local_path: modules/recheck-cli/target/native-image/recheck
+          - os: windows-2025
             artifact_filename: recheck-win32-x64.exe
             local_path: modules/recheck-cli/target/native-image/recheck.exe
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
+    timeout-minutes: 15
     name: Scala Build (Native Binary)
     steps:
       - uses: actions/checkout@v5
@@ -210,9 +222,9 @@ jobs:
           path: |
             **/target
           key: ${{ runner.os }}-build-${{ github.sha }}
-      - if: matrix.os != 'windows-2022'
+      - if: matrix.os != 'windows-2025'
         run: sbt cli/nativeImage
-      - if: matrix.os == 'windows-2022'
+      - if: matrix.os == 'windows-2025'
         name: Run sbt cli/nativeImage
         shell: cmd
         run: >-
@@ -226,7 +238,7 @@ jobs:
     needs: [build, scala-test]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     name: Publish to Maven Central
     steps:
       - uses: actions/checkout@v5
@@ -262,7 +274,7 @@ jobs:
     needs: [build, native-build, node-test]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     name: Publish to NPM
     steps:
       - uses: actions/checkout@v5
@@ -272,10 +284,14 @@ jobs:
         with:
           jvm: adoptium:1.21.0.2
           apps: sbt
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
       - name: Cache SBT
         uses: actions/cache@v4
@@ -292,7 +308,7 @@ jobs:
             **/target
           key: ${{ runner.os }}-build-${{ github.sha }}
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v6
         with:
           name: recheck.js
@@ -315,18 +331,22 @@ jobs:
           path: packages/recheck-linux-x64/
       - uses: actions/download-artifact@v6
         with:
+          name: recheck-linux-arm64
+          path: packages/recheck-linux-arm64/
+      - uses: actions/download-artifact@v6
+        with:
           name: recheck-win32-x64.exe
           path: packages/recheck-windows-x64/
       - name: Build
-        run: NODE_ENV=production yarn lerna run build
+        run: NODE_ENV=production pnpm -r run build
       - name: Publish (beta)
         if: contains(github.ref, '-beta')
-        run: yarn lerna publish --dist-tag next ${{ needs.build.outputs.version }} --yes
+        run: pnpm exec lerna publish --dist-tag next ${{ needs.build.outputs.version }} --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish
         if: "!contains(github.ref, '-beta')"
-        run: yarn lerna publish ${{ needs.build.outputs.version }} --yes
+        run: pnpm exec lerna publish ${{ needs.build.outputs.version }} --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -334,7 +354,7 @@ jobs:
     needs: [maven-release, npm-release]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     name: Publish GitHub Release
     steps:
       - uses: actions/checkout@v5
@@ -383,20 +403,24 @@ jobs:
     name: Build website
     steps:
       - uses: actions/checkout@v5
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-          cache: 'yarn'
+          cache: 'pnpm'
       - uses: actions/download-artifact@v6
         with:
           name: recheck.js
           path: modules/recheck-js/target/scala-2.13/recheck-js-opt/
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build
         run: |
-          NODE_ENV=production yarn workspace recheck build
-          RECHECK_VERSION=${{ needs.build.outputs.version }} yarn workspace website doc
+          NODE_ENV=production pnpm --filter recheck run build
+          RECHECK_VERSION=${{ needs.build.outputs.version }} pnpm --filter website run doc
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
@@ -404,14 +428,14 @@ jobs:
 
   gh-pages-deploy:
     needs: [gh-pages-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    timeout-minutes: 5
     name: Deploy to GitHub Pages
     steps:
       - name: Deploy to GitHub Pages

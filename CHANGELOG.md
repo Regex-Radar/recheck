@@ -1,8 +1,15 @@
 # dev
 
+New Features:
+
+- [#1636](https://github.com/makenowjust-labs/recheck/pull/1636) Add a Linux ARM64 build ([@makenowjust](https://github.com/makenowjust))
+
 Fixes:
 
 - [#1615](https://github.com/makenowjust-labs/recheck/pull/1615) Support ESLint flat config ([@makenowjust](https://github.com/makenowjust))
+- [#1620](https://github.com/makenowjust-labs/recheck/pull/1620) Fix #1616: resolve the windows path issue ([@makenowjust](https://github.com/makenowjust))
+- [#1631](https://github.com/makenowjust-labs/recheck/pull/1631) Switch to pnpm ([@makenowjust](https://github.com/makenowjust))
+- [#1638](https://github.com/makenowjust-labs/recheck/pull/1638) Fix `ReDoS.checkAuto` test for preventing flaky test ([@makenowjust](https://github.com/makenowjust))
 
 Misc:
 
@@ -13,6 +20,13 @@ Misc:
 - [#1544](https://github.com/makenowjust-labs/recheck/pull/1544) Update sbt-ci-release to 1.11.2 ([@makenowjust](https://github.com/makenowjust))
 - [#1501](https://github.com/makenowjust-labs/recheck/pull/1501) Update jest monorepo to v30 (major) ([@renovate[bot]](https://github.com/apps/renovate))
 - [#1510](https://github.com/makenowjust-labs/recheck/pull/1510) Update dependency prettier to v3.6.2 ([@renovate[bot]](https://github.com/apps/renovate))
+- [#1622](https://github.com/makenowjust-labs/recheck/pull/1622) Update GH action timeout to 15 min ([@makenowjust](https://github.com/makenowjust))
+- [#1625](https://github.com/makenowjust-labs/recheck/pull/1625) Update timeout and runners to build ([@makenowjust](https://github.com/makenowjust))
+- [#1626](https://github.com/makenowjust-labs/recheck/pull/1626) Run the `native-build` task on a `schedule` event ([@makenowjust](https://github.com/makenowjust))
+- [#1627](https://github.com/makenowjust-labs/recheck/pull/1627) Add the `--detectOpenHandles` option to run test ([@makenowjust](https://github.com/makenowjust))
+- [#1628](https://github.com/makenowjust-labs/recheck/pull/1628) Enable `--forceExit` option of Jest ([@makenowjust](https://github.com/makenowjust))
+- [#1629](https://github.com/makenowjust-labs/recheck/pull/1629) Unref stderr and work test on CI env correctly ([@makenowjust](https://github.com/makenowjust))
+- [#1637](https://github.com/makenowjust-labs/recheck/pull/1637) Use `lerna run test` instead of `pnpm test` ([@makenowjust](https://github.com/makenowjust))
 
 # 4.5.0 (2025-03-02)
 

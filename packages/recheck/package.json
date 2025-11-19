@@ -92,6 +92,7 @@
   },
   "optionalDependencies": {
     "recheck-jar": "0.0.0",
+    "recheck-linux-arm64": "0.0.0",
     "recheck-linux-x64": "0.0.0",
     "recheck-macos-x64": "0.0.0",
     "recheck-macos-arm64": "0.0.0",
@@ -99,8 +100,8 @@
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
-    "@types/node": "24.10.0",
-    "esbuild": "0.25.12",
+    "@types/node": "24.10.1",
+    "esbuild": "0.27.0",
     "esbuild-jest": "0.5.0",
     "esbuild-register": "3.6.0",
     "jest": "30.2.0",

@@ -2,11 +2,7 @@
   "private": true,
   "name": "recheck",
   "version": "0.0.0",
-  "workspaces": [
-    "packages/*",
-    "website"
-  ],
   "devDependencies": {
-    "lerna": "9.0.0"
+    "lerna": "9.0.1"
   }
 }
