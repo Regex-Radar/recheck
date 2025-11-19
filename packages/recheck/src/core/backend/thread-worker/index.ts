@@ -6,6 +6,9 @@ export const createWorkerPool: WorkerPoolBackend["createWorkerPool"] = (
   threadWorkerPath?: string,
   workerPoolSize?: number,
 ) => {
-  const pool = new WorkerPool(() => createThreadWorker(threadWorkerPath), workerPoolSize);
+  const pool = new WorkerPool(
+    () => createThreadWorker(threadWorkerPath),
+    workerPoolSize,
+  );
   return pool;
 };

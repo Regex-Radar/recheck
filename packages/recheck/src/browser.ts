@@ -1,5 +1,10 @@
 import type { CheckFn, CheckSyncFn } from "./core/builder.js";
-import { webWorker, scalajs, createCheck, createCheckSync } from './core/index.js';
+import {
+  webWorker,
+  scalajs,
+  createCheck,
+  createCheckSync,
+} from "./core/index.js";
 
 let checkFn: CheckFn | undefined;
 export const check: CheckFn = async (...args) => {
@@ -7,7 +12,7 @@ export const check: CheckFn = async (...args) => {
     checkFn = await createCheck(webWorker);
   }
   return checkFn!(...args);
-}
+};
 
 let checkSyncFn: CheckSyncFn | undefined;
 export const checkSync: CheckSyncFn = (...args) => {
@@ -15,4 +20,4 @@ export const checkSync: CheckSyncFn = (...args) => {
     checkSyncFn = createCheckSync(scalajs);
   }
   return checkSyncFn!(...args);
-}
+};

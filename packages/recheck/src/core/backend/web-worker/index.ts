@@ -6,6 +6,9 @@ export const createWorkerPool: WorkerPoolBackend["createWorkerPool"] = (
   webWorkerPath?: string,
   workerPoolSize?: number,
 ) => {
-  const pool = new WorkerPool(() => createWebWorker(webWorkerPath), workerPoolSize);
+  const pool = new WorkerPool(
+    () => createWebWorker(webWorkerPath),
+    workerPoolSize,
+  );
   return pool;
 };

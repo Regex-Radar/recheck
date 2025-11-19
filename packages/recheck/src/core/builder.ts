@@ -23,9 +23,21 @@ export interface WorkerPoolBackend {
   createWorkerPool(workerPath?: string, workerPoolSize?: number): WorkerPool;
 }
 export async function createCheck(backend: AgentBackend): Promise<CheckFn>;
-export async function createCheck(backend: WorkerPoolBackend, workerPath?: string, workerPoolSize?: number): Promise<CheckFn>;
-export async function createCheck(backend: Backend, workerPath?: string, workerPoolSize?: number): Promise<CheckFn>
-export async function createCheck(backend: Backend, workerPath?: string, workerPoolSize?: number): Promise<CheckFn> {
+export async function createCheck(
+  backend: WorkerPoolBackend,
+  workerPath?: string,
+  workerPoolSize?: number,
+): Promise<CheckFn>;
+export async function createCheck(
+  backend: Backend,
+  workerPath?: string,
+  workerPoolSize?: number,
+): Promise<CheckFn>;
+export async function createCheck(
+  backend: Backend,
+  workerPath?: string,
+  workerPoolSize?: number,
+): Promise<CheckFn> {
   if ("createAgent" in backend) {
     const agent = await backend.createAgent();
     return (...args) => check(agent, ...args);

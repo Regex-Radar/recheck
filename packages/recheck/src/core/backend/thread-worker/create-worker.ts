@@ -40,7 +40,10 @@ export function createInlineThreadWorker(): WorkerInterface {
 export function createThreadWorker(
   threadWorkerPath: string | URL = defaultThreadWorkerPath,
 ): WorkerInterface {
-  if (typeof threadWorkerPath === 'string' && threadWorkerPath.startsWith("file://")) {
+  if (
+    typeof threadWorkerPath === "string" &&
+    threadWorkerPath.startsWith("file://")
+  ) {
     threadWorkerPath = new URL(threadWorkerPath);
   }
   const thread = new WorkerThread(threadWorkerPath);

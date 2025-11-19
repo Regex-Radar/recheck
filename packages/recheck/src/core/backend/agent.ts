@@ -12,7 +12,11 @@ import {
   type MethodType,
   type MethodTypeToMessage,
 } from "./protocol.js";
-import type { Diagnostics, HasAbortSignal, Parameters } from "../../../types.js";
+import type {
+  Diagnostics,
+  HasAbortSignal,
+  Parameters,
+} from "../../../types.js";
 
 /**
  * Ref is a pair of promise `resolve`/`reject` functions, and `subscribe` handler of request.
@@ -84,10 +88,10 @@ export class Agent {
 
       // Remove references from the child process
       child.unref();
-      if ('unref' in child.stdin && typeof child.stdin.unref === 'function') {
+      if ("unref" in child.stdin && typeof child.stdin.unref === "function") {
         child.stdin.unref();
       }
-      if ('unref' in child.stdout && typeof child.stdout.unref === 'function') {
+      if ("unref" in child.stdout && typeof child.stdout.unref === "function") {
         child.stdout.unref();
       }
 
@@ -109,7 +113,7 @@ export class Agent {
   }
 
   private read(response: Response<Diagnostics, string>) {
-    if (typeof response.id !== 'number') {
+    if (typeof response.id !== "number") {
       return;
     }
 

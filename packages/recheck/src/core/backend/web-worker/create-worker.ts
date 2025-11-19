@@ -22,7 +22,10 @@ export function createInlineWebWorker(): WorkerInterface {
 export function createWebWorker(
   webWorkerPath: string | URL = defaultwebWorkerPath,
 ): WorkerInterface {
-  if (typeof webWorkerPath === 'string' && webWorkerPath.startsWith("file://")) {
+  if (
+    typeof webWorkerPath === "string" &&
+    webWorkerPath.startsWith("file://")
+  ) {
     webWorkerPath = new URL(webWorkerPath);
   }
   const worker = new Worker(webWorkerPath);

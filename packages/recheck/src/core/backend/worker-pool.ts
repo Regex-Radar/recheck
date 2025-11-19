@@ -1,4 +1,8 @@
-import type { Diagnostics, HasAbortSignal, Parameters } from "../../../types.js";
+import type {
+  Diagnostics,
+  HasAbortSignal,
+  Parameters,
+} from "../../../types.js";
 import { Ref, SubscribeFn } from "./agent.js";
 import type { ID, Response } from "./jsonrpc.js";
 import type { WorkerInterface } from "./worker/worker-interface.js";
@@ -117,7 +121,7 @@ export class WorkerPool {
     worker.addEventListener("message", ({ data }: MessageEvent<string>) => {
       const response: Response<Diagnostics, string> = JSON.parse(data);
 
-      if (typeof response.id !== 'number') {
+      if (typeof response.id !== "number") {
         return;
       }
 
@@ -167,7 +171,10 @@ export class WorkerPool {
     this.pendingRequests.delete(pendingRequest.id);
 
     if (pendingRequest.signal && pendingRequest.onabort) {
-      pendingRequest.signal.removeEventListener("abort", pendingRequest.onabort);
+      pendingRequest.signal.removeEventListener(
+        "abort",
+        pendingRequest.onabort,
+      );
     }
   }
 }

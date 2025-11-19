@@ -137,8 +137,8 @@ const main = async () => {
         ],
         format,
         platform,
-        outbase: 'src',
-        outdir: 'lib',
+        outbase: "src",
+        outdir: "lib",
         plugins: [rawLoaderPlugin],
       });
       // build default entry point for [esm,cjs] with [browser,node]
