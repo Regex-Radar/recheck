@@ -12,5 +12,9 @@
     "type": "git",
     "url": "https://github.com/makenowjust-labs/recheck"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    "./recheck.jar": "./recheck.jar"
+  },
   "preferUnplugged": false
 }

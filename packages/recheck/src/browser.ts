@@ -1,20 +1,18 @@
-import * as pure from "./lib/pure";
-import { WorkerPool } from "./lib/worker-pool";
+import type { CheckFn, CheckSyncFn } from "./core/builder.js";
+import { webWorker, scalajs, createCheck, createCheckSync } from './core/index.js';
 
-import type { Diagnostics, HasAbortSignal, Parameters } from "..";
-
-let pool: WorkerPool | null = null;
-
-export async function check(
-  source: string,
-  flags: string,
-  params: Parameters & HasAbortSignal = {},
-): Promise<Diagnostics> {
-  if (pool === null) {
-    pool = new WorkerPool(1);
+let checkFn: CheckFn | undefined;
+export const check: CheckFn = async (...args) => {
+  if (!checkFn) {
+    checkFn = await createCheck(webWorker);
   }
-
-  return pool.check(source, flags, params);
+  return checkFn!(...args);
 }
 
-export const checkSync = pure.check;
+let checkSyncFn: CheckSyncFn | undefined;
+export const checkSync: CheckSyncFn = (...args) => {
+  if (!checkSyncFn) {
+    checkSyncFn = createCheckSync(scalajs);
+  }
+  return checkSyncFn!(...args);
+}

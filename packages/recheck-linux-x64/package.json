@@ -15,6 +15,10 @@
   "scripts": {
     "build": "chmod +x ./recheck || exit 0"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    "./recheck": "./recheck"
+  },
   "os": [
     "linux"
   ],

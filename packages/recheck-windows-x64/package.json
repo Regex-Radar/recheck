@@ -12,6 +12,10 @@
     "type": "git",
     "url": "https://github.com/makenowjust-labs/recheck"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    "./recheck": "./recheck.exe"
+  },
   "os": [
     "win32"
   ],

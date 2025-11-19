@@ -400,12 +400,25 @@ lazy val js = project
     // ScalaJS config:
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule)
-        // use smallest modules
         .withModuleSplitStyle(org.scalajs.linker.interface.ModuleSplitStyle.SmallestModules)
     },
     Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .dependsOn(coreJS, codecJS)
+
+// // test if this is worth the effort
+// lazy val wasm = project
+//   .in(file("modules/recheck-wasm"))
+//   .enablePlugins(ScalaJSPlugin)
+//   .settings(
+//     name := "recheck-wasm",
+//     scalaJSLinkerConfig ~= {
+//       _.withModuleKind(ModuleKind.ESModule)
+//         .withExperimentalUseWebAssembly(true)
+//         .withModuleSplitStyle(ModuleSplitStyle.FewestModules)
+//     }
+//   )
+//   .dependsOn(js)
 
 lazy val cli = project
   .in(file("modules/recheck-cli"))
